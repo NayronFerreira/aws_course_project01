@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.6-SNAPSHOT'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'com.bmuschko.docker-java-application' version '7.1.0'
+}
+
+group = 'nayronferreiradev'
+version = '0.0.8-SNAPSHOT'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+bootJar {
+    archiveBaseName = 'aws-course-project01'
+    archiveVersion =  '0.0.1-SNAPSHOT'
+}
+
+docker {
+    javaApplication {
+        baseImage = 'openjdk:17-jdk'
+        maintainer = System.getenv('DOCKER_MAINTAINER') ?: 'nayronferreiradev nayronferreiradev@gmail.com'
+        ports = [8080]
+    }
+}
+
+repositories {
+    mavenCentral() // For stable releases
+    maven { url 'https://repo.spring.io/snapshot' } // For snapshot versions
+    maven { url 'https://repo.spring.io/milestone' } // For milestone versions (if needed)
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('dockerBuildImage') {
+    doFirst {
+        imageId = "${project.group}/${bootJar.archiveBaseName}:${bootJar.archiveVersion.get()}"
+    }
+}
+
+tasks.register('dockerPush', com.bmuschko.gradle.docker.tasks.image.DockerPushImage) {
+    dependsOn 'dockerBuildImage'
+    tag = tasks['dockerBuildImage'].imageId
+}

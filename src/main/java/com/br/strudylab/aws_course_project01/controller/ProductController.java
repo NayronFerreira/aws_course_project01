@@ -23,6 +23,7 @@ public class ProductController {
         return productRepository.findAll();
     }
 
+    @GetMapping("/{id}")
     public ResponseEntity<Product> findById(@PathVariable Long id) {
         return productRepository.findById(id)
                 .map(record -> ResponseEntity.ok().body(record))

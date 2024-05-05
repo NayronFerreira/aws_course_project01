@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'nayronferreiradev'
-version = '0.0.8-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
 sourceCompatibility = '17'
 targetCompatibility = '17'
 
@@ -49,7 +49,8 @@ tasks.named('test') {
 
 tasks.named('dockerBuildImage') {
     doFirst {
-        imageId = "${project.group}/${bootJar.archiveBaseName}:${bootJar.archiveVersion.get()}"
+        imageId = "${project.group}/${bootJar.archiveBaseName.get()}:${bootJar.archiveVersion.get()}"
+        println("Image ID: $imageId")
     }
 }
 

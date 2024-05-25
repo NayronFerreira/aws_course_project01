@@ -1,7 +1,9 @@
 package com.br.strudylab.aws_course_project01.controller;
 
+import com.br.strudylab.aws_course_project01.enums.EventType;
 import com.br.strudylab.aws_course_project01.model.Product;
 import com.br.strudylab.aws_course_project01.repository.ProductRepository;
+import com.br.strudylab.aws_course_project01.service.ProductPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +14,12 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private ProductRepository productRepository;
+    private ProductPublisher productPublisher;
 
     @Autowired
-    public ProductController(ProductRepository productRepository) {
+    public ProductController(ProductRepository productRepository, ProductPublisher productPublisher) {
         this.productRepository = productRepository;
+        this.productPublisher = productPublisher;
     }
 
     @GetMapping
@@ -33,6 +37,7 @@ public class ProductController {
     @PostMapping("/save")
     public ResponseEntity<Product> saveProduct(@RequestBody Product product) {
         Product productCreated = productRepository.save(product);
+        productPublisher.publishProductEvent(productCreated, EventType.PRODUCT_CREATED, "nayron");
         return new ResponseEntity<Product>(productCreated, HttpStatus.CREATED);
     }
 
@@ -45,6 +50,7 @@ public class ProductController {
                     record.setCode(product.getCode());
                     record.setPrice(product.getPrice());
                     Product updated = productRepository.save(record);
+                    productPublisher.publishProductEvent(product, EventType.PRODUCT_UPDATED, "May");
                     return ResponseEntity.ok().body(updated);
                 }).orElse(ResponseEntity.notFound().build());
     }
@@ -54,6 +60,7 @@ public class ProductController {
         return productRepository.findById(id)
                 .map(record -> {
                     productRepository.deleteById(id);
+                    productPublisher.publishProductEvent(record, EventType.PRODUCT_DELETED, "Oliver");
                     return ResponseEntity.ok().build();
                 }).orElse(ResponseEntity.notFound().build());
     }
